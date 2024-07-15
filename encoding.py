@@ -34,7 +34,7 @@ class AbstractEncoder(ABC):
             data_new = torch.zeros((n_new,), dtype=torch.float32)
             data_new[sorted(random.sample(range(n_new), len(data)))] = data
             data = data_new
-        else:
+        elif n_new < n_old:
             data = data.unsqueeze(0)
             kernel  = (max(n_old - n_new + 1, 1),)
             pooler = pooler(kernel_size=kernel, stride=1,)
@@ -43,8 +43,7 @@ class AbstractEncoder(ABC):
     
     
     @abstractmethod
-    def __call__(self, data: torch.Tensor) -> torch.tensor:
-        pass
+    def __call__(self, data: torch.Tensor) -> torch.Tensor:...
 
 
 class TTFSEncoder(AbstractEncoder):
@@ -79,7 +78,7 @@ class TTFSEncoder(AbstractEncoder):
         self.theta = theta
         self.neurons_count = neurons_count
         
-    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.tensor:
+    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.Tensor:
         """
         compute the threshold as P_th(t) = `tetha` * exp(-t/`tau`)
         `tau` would be detemined such that the minimum pixel would also fires
@@ -98,7 +97,7 @@ class TTFSEncoder(AbstractEncoder):
         """
         if not isinstance(data, torch.Tensor):
             data = torch.tensor(data)
-        data = self.pool(data, self.neurons_count, pooling)
+        # data = self.pool(data, self.neurons_count, pooling)
         spikes = torch.zeros((self.time,) + data.shape, dtype=torch.bool)
         temp = (data - data.min()) / (data.max() - data.min()) # data in range [0, 1]
         temp = (temp * (1-self.epsilon)) + self.epsilon # data in range [`epsilon`, 1]
@@ -136,7 +135,7 @@ class PoissonEncoder(AbstractEncoder):
         self.device = device
         self.neurons_count = neurons_count
         
-    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.tensor:
+    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.Tensor:
         """
         compute the threshold as P_th(t) = `tetha` * exp(-t/`tau`)
         `tau` would be detemined such that the minimum pixel would also fires
@@ -244,7 +243,7 @@ class PositionalEncoder(AbstractEncoder):
 
         
         
-    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.tensor:
+    def __call__(self, data: torch.Tensor, pooling:Literal['avg', 'max', 'random']='avg') -> torch.Tensor:
         """
         compute the threshold as P_th(t) = `tetha` * exp(-t/`tau`)
         `tau` would be detemined such that the minimum pixel would also fires
