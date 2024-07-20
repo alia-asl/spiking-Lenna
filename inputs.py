@@ -76,16 +76,17 @@ class RandomPattern:
     return self.__getitem__(t)[0]
 
 class DynamicInput:
-  def __init__(self, dim:int, period=1) -> None:
+  def __init__(self, dim:int) -> None:
     """
+    A flexible model to load spikes Just In Time,
+    spikes can be `load`ed and then used later 
     `t` and `dim` are used to validate data
     """
     self.spikes = torch.zeros((dim,1))
     self.dim = dim
     self.loaded = False
-    self.period = period
     
-  def load(self, spikes:torch.Tensor, periodic=False):
+  def load(self, spikes:torch.Tensor, period=1):
     """
     `spikes` shape must be (n, `dim`).
 
@@ -94,11 +95,15 @@ class DynamicInput:
     
     assert spikes.shape[1] == self.dim
     self.spikes = spikes
+    print(f"spikes: {spikes.sum()}")
     self.loaded = True
-    self.periodic = periodic
+    self.period = period
     
   def __call__(self,t, dim) -> torch.Tensor:
     if not self.loaded:
       return self.spikes[:, 0]
     t = (t // self.period) % len(self.spikes)
-    return self.spikes[t, :]
+    ans = self.spikes[t, :]
+    print(f"time {t}: {ans.sum()}")
+    return ans
+  

@@ -20,14 +20,14 @@ from inputs import DynamicInput
 
 
 class ModelSTDP:
-    def __init__(self, in_size, out_size, mid_size=10, mid_dends_sum:int=15, out_dends_sum:int=20, R=100, period=10) -> None:
+    def __init__(self, in_size, out_size, mid_size=10, mid_dends_sum:int=15, out_dends_sum:int=20, R=100) -> None:
         self.net = Neocortex(dt=1, behavior={
-            **prioritize_behaviors([
-                Payoff(), #100
-                Dopamine(tau_dopamine=2), #120
-            ])
+            # **prioritize_behaviors([
+            #     Payoff(), #100
+            #     Dopamine(tau_dopamine=2), #120
+            # ])
         })
-        self.dataset = DynamicInput(dim=in_size, period=period)
+        self.dataset = DynamicInput(dim=in_size,)
         self.inLayer = NeuronGroup(size=in_size, net=self.net, behavior={
             170: InputBehavior(self.dataset, isForceSpike=True),
             360: SpikeTrace(tau_s=0.5),
@@ -73,7 +73,7 @@ class ModelSTDP:
                 SynapseInit(), # 2
                 WeightInitializer(mode='normal(mean=5, std=3)', scale=1 + out_dends_sum // mid_size), # 3
                 SimpleDendriticInput(), # 180
-                SimpleRSTDP(a_plus=10, a_minus=10, tau_c=2), # 400
+                SimpleSTDP(a_plus=10, a_minus=10,), # 400
                 WeightNormalization(norm=out_dends_sum), # 420
             ]),
             501: Recorder(variables=['weights']),
@@ -82,10 +82,15 @@ class ModelSTDP:
         self.net.initialize(info=False)
     
     def fit(self, signal, periodic=False, iterations=0):
+        """
+        Params
+        -----
+        `period`
+        """
         assert periodic == False or iterations > 0
-        self.dataset.load(signal, periodic=periodic)
+        self.dataset.load(signal, period=1)
         if periodic:
-            self.net.simulate_iterations(iterations, measure_block_time=False)
+            self.net.simulate_iterations(iterations * signal.shape[0], measure_block_time=False)
         else:
             self.net.simulate_iterations(signal.shape[0], measure_block_time=False)
         pass

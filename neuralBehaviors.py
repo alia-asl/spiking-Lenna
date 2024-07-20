@@ -98,6 +98,7 @@ class LIFBehavior(Behavior):
 
     # avoid decreasing voltage if threshold passed
     # if neurons.size >= 2:
+    #   print(f"I = {neurons.I}")
     du = self.R * neurons.I # get the input
     neurons.I = neurons.vector(0) # reset input
     if self.leak:
