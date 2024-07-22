@@ -95,7 +95,7 @@ class DynamicInput:
     
     assert spikes.shape[1] == self.dim
     self.spikes = spikes
-    print(f"spikes: {spikes.sum()}")
+    print(f"inputs.py: spikes: {spikes.sum()}")
     self.loaded = True
     self.period = period
     
@@ -104,6 +104,5 @@ class DynamicInput:
       return self.spikes[:, 0]
     t = (t // self.period) % len(self.spikes)
     ans = self.spikes[t, :]
-    print(f"time {t}: {ans.sum()}")
     return ans
   
